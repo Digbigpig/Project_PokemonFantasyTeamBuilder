@@ -4,7 +4,6 @@ import data_access as db
 
 def start():
 
-    team = db.load_team()
     run = True
     ui.start()
 
@@ -26,10 +25,10 @@ def start():
             add()
 
         elif command == "view team":
-            view_team(command)
+            view_team()
 
         elif command == "remove":
-            remove(command)
+            remove()
 
         ui.refresh()
 
@@ -74,13 +73,39 @@ def browse():
                 ui.browse(pokemon, page, page_size, len(pokemon))
 
 
-def add(pokemon):
-    pass
+def add():
+    valid = False
+    pokemon = ui.add_pokemon_name().lower()
+
+    while not valid:
+        if pokemon == "exit":
+            return
+
+        if not db.get_pokemon_data(pokemon):
+            ui.invalid_pokemon_name()
+            pokemon = ui.add_pokemon_name()
+
+        else:
+            valid = True
+
+    db.add_pokemon_to_team(pokemon.title())
+    ui.added_pokemon(pokemon.title())
+
+
+def remove():
+    pokemon = ui.remove_pokemon_name()
+    team = db.load_team()
+
+    while pokemon.title() not in team:
+        if pokemon == "exit":
+            return
+        pokemon = ui.remove_pokemon_name()
+
+    team.remove(pokemon.title())
+    db.save_team(team)
+    view_team()
 
 
 def view_team():
-    pass
-
-
-def remove(pokemon):
-    pass
+    team = db.load_team()
+    ui.view_team(team)
