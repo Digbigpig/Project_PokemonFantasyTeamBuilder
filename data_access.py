@@ -1,10 +1,21 @@
 import pokebase as pb
 import pickle
 
+data = None
+local_pokemon_cache = {}
+
 
 def load_team():
-    with open('data/team.bin', 'rb') as file:
-        team = list(pickle.load(file))
+    team = []
+
+    try:
+        with open('data/team.bin', 'rb') as file:
+            team = list(pickle.load(file))
+
+    except FileNotFoundError:
+        with open('data/team.bin', 'wb') as file:
+            pickle.dump(team, file)
+
     return team
 
 
@@ -13,19 +24,24 @@ def save_team(team):
         pickle.dump(team, file)
 
 
-
 def browse():
-    return pb.APIResourceList("pokemon")
+    global data
+    if not data:
+        data = pb.APIResourceList("pokemon")
+
+    return data
 
 
 def get_pokemon_data(name):
     try:
-        data = pb.pokemon(name)
-
+        result = local_pokemon_cache[name]
+    except KeyError as e:
+        local_pokemon_cache[name] = pb.pokemon(name)
+        result = local_pokemon_cache[name]
     except Exception as e:
-        return False
+        raise e
 
-    return data
+    return result
 
 
 def add_pokemon_to_team(pokemon):
